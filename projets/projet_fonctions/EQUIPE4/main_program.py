@@ -16,6 +16,131 @@ nbre_excel = 0
 bourse = "aucun"
 global nom, prenom, age, classe, etablissement, reduction,frais_base
 
+# Fonction d'affichage du menu
+def menu():
+    print("\nBienvenue dans le menu du gestionnaire d'inscription scolaire.\n")
+    print("GESTIONNAIRE D'INSCRIPTION SCOLAIRE")
+    print("="*40)
+    print("1. Inscrire un élève")
+    print("2. Consulter l'élève actuel")
+    print("3. Modifier les informations")
+    print("4. Calculer les frais")
+    print("5. Voir les statistiques")
+    print("6. Quitter")
+
+# Fonction pour Inscription avec paramètre par défaut
+def inscrire_eleve():
+    global nom, prenom, age, classe, etablissement, bourse
+    global nombre_total_inscrits,classe
+
+    nom = verificator("Nom de l'élève :",str )
+    prenom = verificator("Prenom de l'élève :" ,str)
+    age = verificator("L'âge de l'élève :", int)
+    while True:
+        classe = verificator("La classe de l'élève :(6ème, 5ème, 4ème, 3ème, 2nde, 1ère, Tle) :", str)
+        if classe.lower() in ("6ème", "5ème", "4ème", "tle", "3ème", "2nde", "1ère",):
+            break
+        else: print("❌Saisi invalide. Réessayez svp")
+        # verifie si la classe peut accepter un nouveau élève
+        disponibilite = verifier_disponibilite()
+        if disponibilite :
+            nombre_total_inscrits += 1
+        else:
+            print("Effectif maximal déjà atteint.")
+    while True:
+        etablissement = verificator("Etablissement (public, privé, technique) :", str)
+        if etablissement.lower() in ("privé", "public", "technique"):
+            break
+        else: print("❌Saisi invalide. Réessayez svp")
+    while True:
+        bourse = verificator("Type de bourse (excellence, sociale, familiale, aucune) :" , str)
+        if bourse.lower() in ("excellence", "sociale", "familiale", "aucune"):
+            break
+        else: print("❌Saisi invalide. Réessayez svp")
+
+# Fonction pour afficher l'élève actuel
+def donnee_eleve():
+    global bourse, etablissement
+    frais = calculer_frais()
+    status  = "Inscrit" if classe else "Non inscrit"
+    print("CONSULTATION DE L'ÉLÈVE ACTUEL")
+    print("="*40)
+    print(f"Nom :{nom}")
+    print(f"Prenom :{prenom}")
+    print(f"Age :{age} ans")
+    print(f"Classe :{classe}")
+    print(f"Etablissement :{etablissement}")
+    print(f"Bourse :{bourse}")
+    print(f"Frais :{frais}")
+    print(f"Status :{status}")
+
+
+# Fonction pour modifier les donnees de l' etudiant
+def modif_info():
+    global nom, prenom, age, classe, etablissement, bourse
+    print("MODIFICATION DES INFORMATIONS")
+    print("="*40)
+    print(f"Nom actuel : {nom}")
+    nom = verificator("Nouveau nom : ",str)
+    print(f"Prenom actuel : {prenom}")
+    prenom = verificator("Nouveau prenom : ",str)
+    print(f"Age actuel : {age} ans")
+    age = verificator("Nouveau age : ",int)
+    print(f"Classe actuel : {classe}")
+    while True:
+        try:
+         classe = input("Nouvelle classe : ")
+         if classe.lower() in ("6ème", "5ème","tle", "4ème", "3ème", "2nde", "1ère" ):
+             break
+        except ValueError:
+            print("❌Saisi invalide. Réessayez svp")
+    print(f"Etablissement actuel : {etablissement}")
+    while True:
+        try:
+            etablissement = input("Nouvel etablissement : ")
+            if etablissement.lower() in ("privé", "public", "technique"):
+                break
+        except ValueError:
+            print("❌Saisi invalide. Réessayez svp")
+    print(f"Type de bourse actuel : {bourse}")
+    while True:
+        try:
+            bourse = input("Nouveau type de bourse : ")
+            if bourse.lower() in ("excellence", "sociale", "familiale", "aucune"):
+                break
+        except ValueError:
+            print("❌Saisi invalide. Réessayez svp")
+    print("\nINFORMATIONS MODIFIEES AVEC SUCCES")
+
+# Fonction de calcul des frais idem quelque soit la classe
+def calculer_frais():
+    global recettes_totales, frais_base,reduction, bourse, etablissement
+    frais_base = 35000 if etablissement == "privé" else 0
+    reduction = 0.5 if bourse == "excellence" else 0.3 if bourse == "sociale" else 0.2 if bourse == "familiale" else 0
+    frais_final = frais_base * (1 - reduction) + 2000  # + frais APE
+
+    # Mise à jour des recettes
+    recettes_totales += frais_final
+    return frais_final
+
+# Calcul des frais
+def detail_frais():
+    global recettes_totales, frais_base, classe , etablissement, bourse
+
+    print("CALCUL DÉTAILLÉ DES FRAIS")
+    print("="*40)
+    print(f"Classe : {classe}")
+    print(f"Etablissement : {etablissement}")
+    print(f"Type de bourse : {bourse}")
+    print()
+    print("DETAIL DES FRAIS")
+    print(f"- Frais de base : {frais_base}")
+    print(f"- Réduction bourse ({reduction*100}%) : -{frais_base*reduction}")
+    print(f"- Frais APE : 2000FCFA")
+    print(f"- Cantine : 1000FCFA")
+    print("- Frais transport : 1500FCFA")
+    print(f"- Total à payer : {frais_base*(1- reduction) +4500}FCFA")
+
 # Fonction pour afficher les statistiques
 def affichage_stats():
     global effectif_6eme, effectif_5eme, effectif_4eme,effectif_3eme,effectif_2nde, effectif_1ere, effectif_tle
@@ -77,18 +202,6 @@ def update_nbre_excel():
         nbre_excel += 1
     return nbre_excel
 
-# Fonction d'affichage du menu
-def menu():
-    print("\nBienvenue dans le menu du gestionnaire d'inscription scolaire.\n")
-    print("GESTIONNAIRE D'INSCRIPTION SCOLAIRE")
-    print("="*40)
-    print("1. Inscrire un élève")
-    print("2. Consulter l'élève actuel")
-    print("3. Modifier les informations")
-    print("4. Calculer les frais")
-    print("5. Voir les statistiques")
-    print("6. Quitter")
-
 # Fonction de vérification de la saisi utilisateur
 def verificator(messages, typ ):
     while True:
@@ -98,35 +211,6 @@ def verificator(messages, typ ):
         except ValueError:
             print("❌Saisi invalide. Réessayez svp")
 
-# Fonction pour Inscription avec paramètre par défaut
-def inscrire_eleve():
-    global nom, prenom, age, classe, etablissement, bourse
-    global nombre_total_inscrits,classe
-
-    nom = verificator("Nom de l'élève :",str )
-    prenom = verificator("Prenom de l'élève :" ,str)
-    age = verificator("L'âge de l'élève :", int)
-    while True:
-        classe = verificator("La classe de l'élève :(6ème, 5ème, 4ème, 3ème, 2nde, 1ère, Tle) :", str)
-        if classe.lower() in ("6ème", "5ème", "4ème", "tle", "3ème", "2nde", "1ère",):
-            break
-        else: print("❌Saisi invalide. Réessayez svp")
-        # verifie si la classe peut accepter un nouveau élève
-        disponibilite = verifier_disponibilite()
-        if disponibilite :
-            nombre_total_inscrits += 1
-        else:
-            print("Effectif maximal déjà atteint.")
-    while True:
-        etablissement = verificator("Etablissement (public, privé, technique) :", str)
-        if etablissement.lower() in ("privé", "public", "technique"):
-            break
-        else: print("❌Saisi invalide. Réessayez svp")
-    while True:
-        bourse = verificator("Type de bourse (excellence, sociale, familiale, aucune) :" , str)
-        if bourse.lower() in ("excellence", "sociale", "familiale", "aucune"):
-            break
-        else: print("❌Saisi invalide. Réessayez svp")
 
 # Mise à jour effectif
 def update_effectif_6eme():
@@ -170,16 +254,7 @@ def update_effectif_tle():
     if classe.lower() == "tle":
         effectif_tle += 1
     return effectif_tle
-# Fonction de calcul des frais idem quelque soit la classe
-def calculer_frais():
-    global recettes_totales, frais_base,reduction, bourse, etablissement
-    frais_base = 35000 if etablissement == "privé" else 0
-    reduction = 0.5 if bourse == "excellence" else 0.3 if bourse == "sociale" else 0.2 if bourse == "familiale" else 0
-    frais_final = frais_base * (1 - reduction) + 2000  # + frais APE
 
-    # Mise à jour des recettes
-    recettes_totales += frais_final
-    return frais_final
 
 #  vérification de disponibilité
 def verifier_disponibilite():
@@ -202,76 +277,7 @@ def verifier_disponibilite():
         dispo = effectif_tle < 45
     return dispo
 
-# Fonction pour afficher l'élève actuel
-def donnee_eleve():
-    global bourse, etablissement
-    frais = calculer_frais()
-    status  = "Inscrit" if classe else "Non inscrit"
-    print("CONSULTATION DE L'ÉLÈVE ACTUEL")
-    print("="*40)
-    print(f"Nom :{nom}")
-    print(f"Prenom :{prenom}")
-    print(f"Age :{age} ans")
-    print(f"Classe :{classe}")
-    print(f"Etablissement :{etablissement}")
-    print(f"Bourse :{bourse}")
-    print(f"Frais :{frais}")
-    print(f"Status :{status}")
 
-# Calcul des frais
-def detail_frais():
-    global recettes_totales, frais_base, classe , etablissement, bourse
-
-    print("CALCUL DÉTAILLÉ DES FRAIS")
-    print("="*40)
-    print(f"Classe : {classe}")
-    print(f"Etablissement : {etablissement}")
-    print(f"Type de bourse : {bourse}")
-    print()
-    print("DETAIL DES FRAIS")
-    print(f"- Frais de base : {frais_base}")
-    print(f"- Réduction bourse ({reduction*100}%) : -{frais_base*reduction}")
-    print(f"- Frais APE : 2000FCFA")
-    print(f"- Cantine : 1000FCFA")
-    print("- Frais transport : 1500FCFA")
-    print(f"- Total à payer : {frais_base*(1- reduction) +4500}FCFA")
-
-# Fonction pour modifier les donnees de l' etudiant
-def modif_info():
-    global nom, prenom, age, classe, etablissement, bourse
-    print("MODIFICATION DES INFORMATIONS")
-    print("="*40)
-    print(f"Nom actuel : {nom}")
-    nom = verificator("Nouveau nom : ",str)
-    print(f"Prenom actuel : {prenom}")
-    prenom = verificator("Nouveau prenom : ",str)
-    print(f"Age actuel : {age} ans")
-    age = verificator("Nouveau age : ",int)
-    print(f"Classe actuel : {classe}")
-    while True:
-        try:
-         classe = input("Nouvelle classe : ")
-         if classe.lower() in ("6ème", "5ème","tle", "4ème", "3ème", "2nde", "1ère" ):
-             break
-        except ValueError:
-            print("❌Saisi invalide. Réessayez svp")
-    print(f"Etablissement actuel : {etablissement}")
-    while True:
-        try:
-            etablissement = input("Nouvel etablissement : ")
-            if etablissement.lower() in ("privé", "public", "technique"):
-                break
-        except ValueError:
-            print("❌Saisi invalide. Réessayez svp")
-    print(f"Type de bourse actuel : {bourse}")
-    while True:
-        try:
-            bourse = input("Nouveau type de bourse : ")
-            if bourse.lower() in ("excellence", "sociale", "familiale", "aucune"):
-                break
-        except ValueError:
-            print("❌Saisi invalide. Réessayez svp")
-    print("\nINFORMATIONS MODIFIEES AVEC SUCCES")
 
 
 # Fonction qui dirige tout ou persque tout
